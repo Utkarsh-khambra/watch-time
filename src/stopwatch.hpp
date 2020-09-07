@@ -15,5 +15,4 @@ private:
   std::chrono::steady_clock::time_point m_start;
   std::chrono::steady_clock::time_point m_end;
   GLFWwindow *window;
-  size_t milliseconds;
 };
