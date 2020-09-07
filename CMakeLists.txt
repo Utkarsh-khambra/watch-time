@@ -26,7 +26,6 @@ endif()
 # ---- Add dependencies via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-find_package(Catch2 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 # ---- Add source files ----
 
@@ -35,7 +34,7 @@ find_package(fmt CONFIG REQUIRED)
 
 # ---- Create library ----
 add_subdirectory(imgui)
-add_executable(clock src/main.cpp)
+add_executable(clock src/main.cpp src/stopwatch.cpp)
 # Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
 # target: add_library(clock INTERFACE) set_target_properties(clock PROPERTIES
 # INTERFACE_COMPILE_FEATURES cxx_std_17)
