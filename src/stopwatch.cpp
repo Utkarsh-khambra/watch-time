@@ -128,7 +128,7 @@ void stopwatch::update() {
   auto &io = ImGui::GetIO();
   io.Fonts->AddFontDefault();
   auto *font = io.Fonts->AddFontFromFileTTF(
-      "/home/utkarsh/watch-time/assets/Lexend_Peta/LexendPeta-Regular.ttf", 50);
+      "../assets/Lexend_Peta/LexendPeta-Regular.ttf", 50);
   glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
   while (!glfwWindowShouldClose(window)) {
