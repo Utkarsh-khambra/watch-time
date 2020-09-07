@@ -6,14 +6,29 @@
 #include <stdexcept>
 
 // Here wait is the amount of time for which stopwatch was stopped
-static void print_time(std::chrono::steady_clock::time_point start,
-                       std::chrono::steady_clock::time_point end,
-                       long wait) noexcept {
+static inline std::string
+get_time_string(std::chrono::steady_clock::time_point start,
+                std::chrono::steady_clock::time_point end, long wait) noexcept {
   auto milli =
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
           .count() -
       wait;
-  auto print = fmt::format("{}s:{}ms", milli / 1000, milli % 1000);
+  auto seconds = milli / 1000;
+  milli = milli % 1000;
+  if (auto minutes = seconds / 60; minutes) {
+    seconds = seconds % 60;
+    if (auto hours = minutes / 60; hours) {
+      minutes = minutes % 60;
+      return fmt::format("{}h:{}m:{}s:{}ms", hours, minutes, seconds, milli);
+    }
+    return fmt::format("{}m:{}s:{}ms", minutes, seconds, milli);
+  }
+  return fmt::format("{}s:{}ms", seconds, milli);
+}
+static inline void show_time(std::chrono::steady_clock::time_point start,
+                             std::chrono::steady_clock::time_point end,
+                             long wait) {
+  auto print = get_time_string(start, end, wait);
   ImGui::Indent(220);
   ImGui::Text(print.c_str());
   ImGui::Unindent(220);
@@ -100,10 +115,11 @@ void stopwatch::reset() noexcept {
   m_end = m_start = std::chrono::steady_clock::now();
 }
 
+// Stopwatch starts in a reseted condition
 void stopwatch::update() {
   bool started = false;
   bool reseted = true;
-  bool stoped = false;
+  bool stopped = false;
 
   long wait = 0;
   auto wait_start = std::chrono::steady_clock::now();
@@ -142,42 +158,50 @@ void stopwatch::update() {
 
       ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!"
       ImGui::PushFont(font);
-      started ? print_time(m_start, std::chrono::steady_clock::now(), wait)
-              : (stoped ? print_time(m_start, m_end, wait)
-                        : print_time(m_start, m_start, wait));
+      started ? show_time(m_start, std::chrono::steady_clock::now(), wait)
+              : (stopped ? show_time(m_start, m_end, wait)
+                         : show_time(m_start, m_start, wait));
       ImGui::PopFont();
 
       if (ImGui::Button("Start", ImVec2(80, 40)) and (!started)) {
+        // Because only if reseted set the starting point of clock to a new
+        // timepoint
         if (reseted)
           start();
-        if (stoped) {
+        // This branch is executed only when there is some wait, which is only
+        // possible for clocks with current state as stopped and reseted
+        if (stopped and (!reseted)) {
           wait += std::chrono::duration_cast<std::chrono::milliseconds>(
                       std::chrono::steady_clock::now() - wait_start)
                       .count();
           // wait_start = std::chrono::steady_clock::now();
         }
         started = true;
-        stoped = false;
+        stopped = false;
         reseted = false;
       }
       ImGui::SameLine();
       ImGui::Indent(105);
+
+      // This branch sets both reseted and stopped because gui of stopwatch both
+      // resets the clock also stops it or puts the clock in its intialzed
+      // settings
       if (ImGui::Button("Reset", ImVec2(80, 40)) and (!reseted)) {
         reset();
         started = false;
-        stoped = false;
+        stopped = true;
         reseted = true;
         wait = 0;
       }
       ImGui::SameLine();
       ImGui::Indent(105);
-      if (ImGui::Button("Stop", ImVec2(80, 40)) and (!stoped)) {
-        if (started)
-          stop();
+      if (ImGui::Button("Stop", ImVec2(80, 40)) and (!stopped)) {
+        // Wait should counted only when a started stopwatch has been stopped
+        stop();
         wait_start = std::chrono::steady_clock::now();
 
         started = false;
-        stoped = true;
+        stopped = true;
         reseted = false;
       }
       ImGui::End();
