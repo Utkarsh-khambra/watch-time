@@ -94,10 +94,12 @@ static void setup_imgui(GLFWwindow *window, const char *glsl_version) noexcept {
 
 stopwatch::stopwatch() {
   const char *glsl_version = "#version 130";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+
   if (!glfwInit())
     throw std::runtime_error("GLFW not initialized");
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   window = glfwCreateWindow(600, 300, "clock", NULL, NULL);
   if (window == NULL)
     throw std::runtime_error("Cannot create window");
@@ -156,12 +158,16 @@ void stopwatch::update() {
     // ImGui!).
     {
 
-      ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!"
+      ImGui::Begin("Clock", nullptr,
+                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                       ImGuiWindowFlags_NoDecoration); // Create a window called
+                                                       // "Hello, world!"
       ImGui::PushFont(font);
       started ? show_time(m_start, std::chrono::steady_clock::now(), wait)
               : (stopped ? show_time(m_start, m_end, wait)
                          : show_time(m_start, m_start, wait));
       ImGui::PopFont();
+      ImGui::Indent(150);
 
       if (ImGui::Button("Start", ImVec2(80, 40)) and (!started)) {
         // Because only if reseted set the starting point of clock to a new
